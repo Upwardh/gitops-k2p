@@ -9,6 +9,9 @@ import time
 import logging
 import threading
 import kcldx as kcl
+
+# New feature: Version endpoint
+VERSION = "1.2.0"
 from dotenv import load_dotenv
 from prometheus_client import start_http_server, Gauge, Counter, Info
 from prometheus_client.core import CollectorRegistry
