@@ -13,7 +13,7 @@ spec:
     path: k8s-manifests/overlays/prod
   destination:
     server: https://kubernetes.default.svc
-    namespace: monitoring
+    namespace: monitoring-prod
   syncPolicy:
     # Production requires manual sync for safety
     syncOptions:
