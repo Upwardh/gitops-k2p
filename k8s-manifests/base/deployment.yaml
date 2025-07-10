@@ -25,7 +25,7 @@ spec:
         - name: ktcloud-registry-secret
       containers:
         - name: lb-exporter
-          image: lb-exporter:latest
+          image: registry.cloud.kt.com/nqtv7l5h/lb-exporter:latest
           ports:
             - containerPort: 9105
               name: metrics

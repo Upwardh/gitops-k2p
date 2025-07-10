@@ -12,8 +12,7 @@ commonLabels:
   environment: dev
 
 images:
-  - name: lb-exporter
-    newName: registry.cloud.kt.com/nqtv7l5h/lb-exporter
+  - name: registry.cloud.kt.com/nqtv7l5h/lb-exporter:latest
     newTag: develop-3acfb49481a81b4e2b275b738deff46880eee0b8
 
 replicas:
