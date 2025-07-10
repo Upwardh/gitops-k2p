@@ -9,7 +9,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/Upwardh/gitops-k2p
-    targetRevision: HEAD
+    targetRevision: main
     path: k8s-manifests/overlays/staging
   destination:
     server: https://kubernetes.default.svc
