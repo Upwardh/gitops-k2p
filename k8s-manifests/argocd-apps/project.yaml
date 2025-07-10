@@ -1,0 +1,44 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: lb-exporter
+  namespace: argocd
+spec:
+  description: KT Cloud Load Balancer Exporter Project
+  sourceRepos:
+    - 'https://github.com/Upwardh/gitops-k2p'
+  destinations:
+    - namespace: monitoring*
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: ''
+      kind: Namespace
+    - group: 'monitoring.coreos.com'
+      kind: ServiceMonitor
+  namespaceResourceWhitelist:
+    - group: ''
+      kind: Secret
+    - group: ''
+      kind: Service
+    - group: ''
+      kind: ConfigMap
+    - group: 'apps'
+      kind: Deployment
+    - group: 'monitoring.coreos.com'
+      kind: ServiceMonitor
+  roles:
+    - name: admin
+      description: Admin privileges to lb-exporter project
+      policies:
+        - p, proj:lb-exporter:admin, applications, *, lb-exporter/*, allow
+        - p, proj:lb-exporter:admin, repositories, *, *, allow
+      groups:
+        - ktcloud-admin
+    - name: developer
+      description: Developer access to lb-exporter project
+      policies:
+        - p, proj:lb-exporter:developer, applications, get, lb-exporter/*, allow
+        - p, proj:lb-exporter:developer, applications, sync, lb-exporter/lb-exporter-dev, allow
+        - p, proj:lb-exporter:developer, applications, sync, lb-exporter/lb-exporter-staging, allow
+      groups:
+        - ktcloud-developer

@@ -1,0 +1,114 @@
+name: Security Scan
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2 AM
+  workflow_dispatch:
+
+env:
+  REGISTRY: registry.cloud.kt.com
+  IMAGE_NAME: nqtv7l5h/lb-exporter
+
+jobs:
+  dependency-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+
+      - name: Install dependencies
+        run: |
+          cd my-k8s-project/lb-exporter
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install safety
+
+      - name: Run dependency vulnerability scan
+        run: |
+          cd my-k8s-project/lb-exporter
+          safety check --json --output safety-report.json || true
+
+      - name: Upload dependency scan results
+        uses: actions/upload-artifact@v3
+        with:
+          name: dependency-scan-results
+          path: my-k8s-project/lb-exporter/safety-report.json
+
+  code-security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+
+      - name: Install security tools
+        run: |
+          pip install bandit semgrep
+
+      - name: Run Bandit security scan
+        run: |
+          cd my-k8s-project/lb-exporter
+          bandit -r . -f json -o bandit-report.json || true
+
+      - name: Run Semgrep security scan
+        run: |
+          cd my-k8s-project/lb-exporter
+          semgrep --config=auto --json --output=semgrep-report.json . || true
+
+      - name: Upload security scan results
+        uses: actions/upload-artifact@v3
+        with:
+          name: code-security-scan-results
+          path: |
+            my-k8s-project/lb-exporter/bandit-report.json
+            my-k8s-project/lb-exporter/semgrep-report.json
+
+  container-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  k8s-security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Kubernetes security scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          scan-ref: 'kubernetes-manifests'
+          format: 'sarif'
+          output: 'k8s-security-results.sarif'
+
+      - name: Upload Kubernetes security scan results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'k8s-security-results.sarif'

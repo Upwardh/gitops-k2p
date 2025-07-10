@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: lb-exporter
+  namespace: monitoring
+  labels:
+    app: lb-exporter
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9105
+      targetPort: 9105
+      protocol: TCP
+      name: metrics
+  selector:
+    app: lb-exporter

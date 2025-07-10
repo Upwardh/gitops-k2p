@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lb-exporter-account2 # 다른 이름으로 지정
+  namespace: monitoring
+  labels:
+    app: lb-exporter-account2 # 다른 이름으로 지정
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lb-exporter-account2
+  template:
+    metadata:
+      labels:
+        app: lb-exporter-account2
+    spec:
+      containers:
+        - name: lb-exporter-account2
+          image: registry.cloud.kt.com/nqtv7l5h/lb-exporter:v1.0.1 # 기존 이미지 재사용
+          ports:
+            - containerPort: 9105
+              name: metrics
+          env:
+            # 새로운 Secret에서 환경 변수 로드
+            - name: CLOUD_ID
+              valueFrom:
+                secretKeyRef:
+                  name: ktcloud-lb-exporter-secrets-account2 # 새로운 Secret 이름
+                  key: CLOUD_ID
+            - name: CLOUD_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ktcloud-lb-exporter-secrets-account2
+                  key: CLOUD_PASSWORD
+            - name: CLOUD_ZONE
+              valueFrom:
+                secretKeyRef:
+                  name: ktcloud-lb-exporter-secrets-account2
+                  key: CLOUD_ZONE
+      imagePullSecrets:
+        - name: ktcloud-registry-secret

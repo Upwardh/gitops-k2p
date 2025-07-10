@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lb-exporter
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lb-exporter
+  template:
+    metadata:
+      labels:
+        app: lb-exporter
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9105"
+        prometheus.io/path: "/metrics"
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 2000
+      containers:
+        - name: lb-exporter
+          image: lb-exporter:latest
+          ports:
+            - containerPort: 9105
+              name: metrics
+              protocol: TCP
+          env:
+            - name: CLOUD_ID
+              valueFrom:
+                secretKeyRef:
+                  name: ktcloud-lb-exporter-secrets
+                  key: CLOUD_ID
+            - name: CLOUD_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ktcloud-lb-exporter-secrets
+                  key: CLOUD_PASSWORD
+            - name: CLOUD_ZONE
+              valueFrom:
+                secretKeyRef:
+                  name: ktcloud-lb-exporter-secrets
+                  key: CLOUD_ZONE
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: 9105
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: 9105
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL

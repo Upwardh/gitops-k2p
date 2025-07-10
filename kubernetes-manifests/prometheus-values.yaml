@@ -1,0 +1,52 @@
+# values.yaml (prometheus-values.yaml)
+# Prometheus 기본 설정
+prometheus:
+  prometheusSpec:
+    # Custom Exporter를 위한 추가 스크랩 설정
+    additionalScrapeConfigs:
+      # lb-exporter 서비스의 FQDN (Fully Qualified Domain Name)을 사용하여 타겟 지정
+      # 서비스 이름 (lb-exporter) + 네임스페이스 (monitoring) + 서비스 포트 (9105)
+      - job_name: 'ktcloud-lb'
+        metrics_path: /metrics
+        static_configs:
+          - targets: ['lb-exporter.monitoring:9105']
+        relabel_configs: # 추가 레이블 (선택 사항)
+          - source_labels: [__address__]
+            target_label: instance
+            regex: (.*)
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: kubernetes_pod_name
+          - source_labels: [__meta_kubernetes_pod_container_name]
+            target_label: kubernetes_container_name
+        scrape_interval: 60s # lb-exporter.py의 SCRAPE_INTERVAL과 일치시키는 것이 좋음
+        scrape_timeout: 20s
+        honor_labels: true # lb-exporter에서 제공하는 레이블을 유지
+      # --- 새로운 계정 (ktcloud-lb-account2) 스크랩 설정 ---
+      - job_name: 'ktcloud-lb-account2' # 다른 Job 이름
+        metrics_path: /metrics
+        static_configs:
+          - targets: ['lb-exporter-account2.monitoring:9105'] # 새로운 서비스 FQDN
+        relabel_configs:
+          # lb_exporter_instance 레이블을 추가하여 어떤 exporter에서 온 데이터인지 구분
+          - source_labels: [__address__]
+            target_label: instance
+            regex: (.*)
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: kubernetes_pod_name
+          - source_labels: [__meta_kubernetes_pod_container_name]
+            target_label: kubernetes_container_name
+        scrape_interval: 60s
+        scrape_timeout: 20s
+        honor_labels: true
+
+# Grafana 기본 설정
+grafana:
+  enabled: true
+  # Grafana 관리자 비밀번호 (초기 로그인용). 반드시 안전한 비밀번호로 변경하세요!
+  adminPassword: Ehrtnfl!#24 # <--- 이 부분을 안전한 비밀번호로 변경하세요.
+  service:
+    type: ClusterIP # Grafana에 외부에서 접속하기 위한 서비스 타입 (클라우드 환경에서 External-IP를 할당받음)
+    # 만약 클라우드 환경이 아니라 NodePort로 접근하려면 아래처럼 변경:
+    # type: NodePort
+    # nodePort: 30000 # NodePort 사용 시 노드에서 개방될 포트 (30000-32767 범위)
+    # 또는 Ingress를 통해 접근할 수도 있습니다.

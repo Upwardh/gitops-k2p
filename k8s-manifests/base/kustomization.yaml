@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: monitoring
+
+resources:
+  - secret.yaml
+  - deployment.yaml
+  - service.yaml
+  - servicemonitor.yaml
+
+commonLabels:
+  app: lb-exporter
+  component: monitoring
+  managed-by: kustomize
+
+images:
+  - name: lb-exporter
+    newName: registry.cloud.kt.com/nqtv7l5h/lb-exporter
+    newTag: latest

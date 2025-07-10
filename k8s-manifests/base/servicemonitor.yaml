@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: lb-exporter
+  namespace: monitoring
+  labels:
+    app: lb-exporter
+spec:
+  selector:
+    matchLabels:
+      app: lb-exporter
+  endpoints:
+    - port: metrics
+      interval: 60s
+      path: /metrics
+      honorLabels: true

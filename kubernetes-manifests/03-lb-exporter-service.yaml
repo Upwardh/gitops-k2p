@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: lb-exporter
+  namespace: monitoring
+  labels:
+    app: lb-exporter
+spec:
+  selector:
+    app: lb-exporter
+  ports:
+    - protocol: TCP
+      port: 9105 # 서비스 포트
+      targetPort: metrics # 컨테이너 포트 (Deployment의 name: metrics와 일치)
+      name: metrics

@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana-ingress
+  namespace: monitoring
+  annotations:
+    # kubernetes.io/ingress.class: nginx # <-- 이전 Ingress API 버전에서 사용되던 어노테이션
+    # 이 어노테이션을 사용하는 대신 spec.ingressClassName을 사용하는 것이 v1 Ingress에서 권장됩니다.
+spec:
+  ingressClassName: nginx # <--- 이 줄을 추가합니다.
+  rules:
+  - host: grafana.devtron.click
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: prometheus-grafana
+            port:
+              number: 80  
+# TLS 설정 (HTTPS 사용 시)
+  # tls:
+  # - hosts:
+  #   - grafana.yourdomain.com
+  #   secretName: grafana-tls-secret # TLS 인증서가 포함된 Secret 이름 (미리 생성해야 함)
