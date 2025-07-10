@@ -4,14 +4,16 @@ on:
   push:
     branches: [main, develop]
     paths:
+      # 🔥 CI 트리거 조건: 애플리케이션 코드 변경시에만 새 이미지 빌드
       - 'my-k8s-project/lb-exporter/**'
-      - 'kubernetes-manifests/**'
       - '.github/workflows/**'
+      # ❌ kubernetes-manifests 제외: GitOps 설정 변경은 CI 트리거하지 않음
   pull_request:
     branches: [main, develop]
     paths:
+      # 🔥 PR 검증: 애플리케이션 코드 변경에 대해서만 빌드 테스트
       - 'my-k8s-project/lb-exporter/**'
-      - 'kubernetes-manifests/**'
+      - '.github/workflows/**'
 
 env:
   REGISTRY: registry.cloud.kt.com

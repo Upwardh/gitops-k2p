@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # kt Cloud LB Exporter
-# Dev environment test - version 1.0.1
+# Dev environment test - version 1.0.2 (CI/CD fix)
 
 
 import os
