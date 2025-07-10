@@ -2966,7 +2966,7 @@ def validate_vm_list(
             msg = f"""'{vm["name"]}'에서 '{vm["subnet"]}'논 존재하지 않는 Subnet 입니다."""
             append_msg_list(msg_list, key, msg)
 
-        image_name = get_image_name(vm["image"], zone_name)
+        image_name = vm["image"]
         if image_name == None:
             image_name = vm["image"]
 
@@ -3160,7 +3160,7 @@ def validate_lb_list(key_lb_list, subnet_list, vm_list, old_lb_list, action):
             if lb["service_ip"].startswith("new_"):
                 if not check_new_ip_format(lb["service_ip"]):
                     result = False
-                    msg = f"""{index} 번째 설정에서 '{nat["public_ip"]}'은 표현식 오류입니다. (예, new_001, new_123)"""
+                    msg = f"""'{lb["name"]}'에서 '{lb["service_ip"]}'은 표현식 오류입니다. (예, new_001, new_123)"""
                     append_msg_list(msg_list, key, msg)
             else:
                 if not is_ip_address(lb["service_ip"]):
@@ -4059,7 +4059,7 @@ def change_ip_list_shape(ip_list, key):
         if len(ip["res_name"]) != 0:
             if not validate_string2(ip["res_name"]):
                 result = False
-                msg = f"""'{vm["res_name"]}'은 잘못된 res_name입니다. 영문자, 숫자, '-', '_'로 구성되며, 첫글자는 영문자여야 합니다."""
+                msg = f"""'{ip["res_name"]}'은 잘못된 res_name입니다. 영문자, 숫자, '-', '_'로 구성되며, 첫글자는 영문자여야 합니다."""
                 append_msg_list(msg_list, key, msg)
 
         if ip["type"] != "":

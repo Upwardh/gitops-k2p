@@ -8,12 +8,9 @@ import time
 import logging
 import threading
 import kcldx as kcl
-from datetime import datetime
 from dotenv import load_dotenv
-import kcldx as kel
 from prometheus_client import start_http_server, Gauge, Counter, Info
 from prometheus_client.core import CollectorRegistry
-import copy
 
 # .env 파일에서 환경 변수 로드
 load_dotenv()

@@ -19,7 +19,6 @@ import kclutil as ku
 import kclinstance as ki
 import datetime
 import requests
-import json
 import time
 import logging
 import os
@@ -823,12 +822,12 @@ class StorageResource:
     # volume들이 생성될 때까지 기다림.
     def wait_until_available(self, volume_ids):
         waiter = self.waiter_instance("volume_available")
-        return waiter.wait(vm_ids)
+        return waiter.wait(volume_ids)
 
     # volume들이 서버에 연결될 때까지 기다림.
     def wait_until_inuse(self, volume_ids):
         waiter = self.waiter_instance("volume_inuse")
-        return waiter.wait(vm_ids)
+        return waiter.wait(volume_ids)
 
     ################################################
     # Waiter functions
@@ -1866,7 +1865,7 @@ class NetworkResource:
 
     # Waiter Instance를 return
     def waiter_instance(self, dest_state):
-        return WaiterVoumeInstance(dest_state, self)
+        return ki.WaiterVolumeInstance(dest_state, self)
 
     ################################################
     # Load Balancer functions
@@ -4207,7 +4206,7 @@ class VPC:
             ku.append_msg_list(msg_list, "syntax_error", msg)
             return False, msg_list
 
-        return self.validate_change_res_from_dict(json_form, action)
+        return self.validate_change_res_from_dict(json_form)
 
     def change_res_from_json(self, json_file):
         msg_list = []
@@ -4223,7 +4222,7 @@ class VPC:
             ku.append_msg_list(msg_list, "syntax_error", msg)
             return result, msg_list
 
-        return self.change_res_from_dict(json_form, action)
+        return self.change_res_from_dict(json_form)
 
     def create_res_from_csv(
         self, vm_csv=None, lb_csv=None, ip_csv=None, fw_csv=None, action="all"
