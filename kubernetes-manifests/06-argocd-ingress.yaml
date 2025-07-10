@@ -1,0 +1,30 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: argocd-ingress
+  namespace: argocd
+  annotations:
+    # ArgoCD는 HTTPS를 기본으로 사용하므로 백엔드 프로토콜을 HTTPS로 설정
+    nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+    # ArgoCD 서버의 SSL 인증서를 검증하지 않음 (self-signed 인증서 사용)
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    # ArgoCD는 gRPC와 HTTP/2를 사용하므로 이를 지원하도록 설정
+    nginx.ingress.kubernetes.io/grpc-backend: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: argocd.devtron.click
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: argocd-server
+            port:
+              number: 80
+# TLS 설정 (HTTPS 사용 시)
+  # tls:
+  # - hosts:
+  #   - argocd.devtron.click
+  #   secretName: argocd-tls-secret # TLS 인증서가 포함된 Secret 이름 (미리 생성해야 함)

@@ -521,3 +521,4 @@ def main():
 # 스크립트가 직접 실행될 때만 main() 함수 호출
 if __name__ == "__main__":
     main()
+# 테스트 변경사항 - Thu Jul 10 11:31:39 PM KST 2025

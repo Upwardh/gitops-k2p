@@ -21,6 +21,8 @@ spec:
         runAsNonRoot: true
         runAsUser: 1000
         fsGroup: 2000
+      imagePullSecrets:
+        - name: ktcloud-registry-secret
       containers:
         - name: lb-exporter
           image: lb-exporter:latest
