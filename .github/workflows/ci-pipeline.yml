@@ -146,24 +146,27 @@ jobs:
     if: github.ref == 'refs/heads/develop'
     environment: development
     steps:
-      - name: Checkout GitOps repository
+      - name: Checkout current repository
         uses: actions/checkout@v4
         with:
-          repository: Upwardh/gitops-k2p
-          token: ${{ secrets.GITOPS_TOKEN }}
-          path: gitops
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
       - name: Update development manifests
         run: |
-          cd gitops
-          sed -i "s|image: .*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}|g" \
-            overlays/dev/kustomization.yaml
-          
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add .
-          git commit -m "Update dev image to ${{ github.sha }}" || exit 0
-          git push
+          # Check if k8s-manifests/overlays/dev/kustomization.yaml exists
+          if [ -f "k8s-manifests/overlays/dev/kustomization.yaml" ]; then
+            sed -i "s|newTag: .*|newTag: develop-${{ github.sha }}|g" \
+              k8s-manifests/overlays/dev/kustomization.yaml
+            
+            git config user.name "GitHub Actions"
+            git config user.email "actions@github.com"
+            git add k8s-manifests/overlays/dev/kustomization.yaml
+            git commit -m "Update dev image to ${{ github.sha }}" || exit 0
+            git push
+          else
+            echo "Development overlay not found, skipping update"
+          fi
 
   deploy-staging:
     needs: [build, security-scan]
@@ -171,24 +174,27 @@ jobs:
     if: github.ref == 'refs/heads/main'
     environment: staging
     steps:
-      - name: Checkout GitOps repository
+      - name: Checkout current repository
         uses: actions/checkout@v4
         with:
-          repository: Upwardh/gitops-k2p
-          token: ${{ secrets.GITOPS_TOKEN }}
-          path: gitops
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
       - name: Update staging manifests
         run: |
-          cd gitops
-          sed -i "s|image: .*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}|g" \
-            overlays/staging/kustomization.yaml
-          
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add .
-          git commit -m "Update staging image to ${{ github.sha }}" || exit 0
-          git push
+          # Check if k8s-manifests/overlays/staging/kustomization.yaml exists
+          if [ -f "k8s-manifests/overlays/staging/kustomization.yaml" ]; then
+            sed -i "s|newTag: .*|newTag: main-${{ github.sha }}|g" \
+              k8s-manifests/overlays/staging/kustomization.yaml
+            
+            git config user.name "GitHub Actions"
+            git config user.email "actions@github.com"
+            git add k8s-manifests/overlays/staging/kustomization.yaml
+            git commit -m "Update staging image to ${{ github.sha }}" || exit 0
+            git push
+          else
+            echo "Staging overlay not found, skipping update"
+          fi
 
   notify:
     needs: [deploy-dev, deploy-staging]
