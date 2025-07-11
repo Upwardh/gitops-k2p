@@ -11,7 +11,7 @@ import threading
 import kcldx as kcl
 
 # New feature: Version endpoint
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 from dotenv import load_dotenv
 from prometheus_client import start_http_server, Gauge, Counter, Info
 from prometheus_client.core import CollectorRegistry
@@ -560,4 +560,4 @@ def main():
 # 스크립트가 직접 실행될 때만 main() 함수 호출
 if __name__ == "__main__":
     main()
-# CI/CD Full Pipeline Test - Complete SHA Format Fix - 2025-07-12 01:25:00
+# CI/CD 2nd Test - Full Pipeline Validation - 2025-07-12 01:35:00
