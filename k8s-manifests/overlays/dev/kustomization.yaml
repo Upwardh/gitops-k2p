@@ -13,7 +13,7 @@ commonLabels:
 
 images:
   - name: registry.cloud.kt.com/nqtv7l5h/lb-exporter:latest
-    newTag: develop-4caab5dbcf29c4f244224825c6bb6d7ec2cdd4b8
+    newTag: latest
 
 replicas:
   - name: lb-exporter
