@@ -560,4 +560,4 @@ def main():
 # 스크립트가 직접 실행될 때만 main() 함수 호출
 if __name__ == "__main__":
     main()
-# CI/CD Pipeline Test - Fri Jul 11 12:30:00 PM KST 2025
+# CI/CD Full Pipeline Test - Complete SHA Format Fix - 2025-07-12 01:25:00
