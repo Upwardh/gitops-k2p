@@ -5,7 +5,7 @@ on:
     branches: [main, develop]
     paths:
       # 모니터링 스택 관련 파일 변경시에만 트리거
-      - 'environments/**'
+      - 'environments/monitoring/**'
       - 'k8s-manifests/base/grafana-dashboards-configmap.yaml'
       - 'k8s-manifests/base/grafana-ingress.yaml'
       - 'k8s-manifests/base/lb-exporter-servicemonitor.yaml'
@@ -14,7 +14,7 @@ on:
   pull_request:
     branches: [main, develop]
     paths:
-      - 'environments/**'
+      - 'environments/monitoring/**'
       - 'k8s-manifests/base/grafana-dashboards-configmap.yaml'
       - 'k8s-manifests/base/grafana-ingress.yaml'
       - 'k8s-manifests/base/lb-exporter-servicemonitor.yaml'

@@ -123,7 +123,7 @@ create_namespace() {
 deploy_lb_exporter_account2() {
     log_info "lb-exporter account2 배포 중..."
     
-    local env_dir="${PROJECT_ROOT}/environments/${ENVIRONMENT}"
+    local env_dir="${PROJECT_ROOT}/environments/monitoring/${ENVIRONMENT}"
     
     kubectl apply -f "${env_dir}/lb-exporter-account2-secret.yaml"
     kubectl apply -f "${env_dir}/lb-exporter-account2-deployment.yaml"
@@ -138,7 +138,7 @@ deploy_monitoring_stack() {
     
     local namespace="monitoring-${ENVIRONMENT}"
     local release_name="prometheus-${ENVIRONMENT}"
-    local values_file="${PROJECT_ROOT}/environments/${ENVIRONMENT}/prometheus-values-${ENVIRONMENT}.yaml"
+    local values_file="${PROJECT_ROOT}/environments/monitoring/${ENVIRONMENT}/prometheus-values-${ENVIRONMENT}.yaml"
     
     helm upgrade --install "$release_name" prometheus-community/kube-prometheus-stack \
         -f "$values_file" \
@@ -152,7 +152,7 @@ deploy_monitoring_stack() {
 apply_ingress() {
     log_info "Grafana 인그레스 적용 중..."
     
-    local ingress_file="${PROJECT_ROOT}/environments/${ENVIRONMENT}/grafana-ingress.yaml"
+    local ingress_file="${PROJECT_ROOT}/environments/monitoring/${ENVIRONMENT}/grafana-ingress.yaml"
     
     kubectl apply -f "$ingress_file"
     

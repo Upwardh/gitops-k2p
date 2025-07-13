@@ -25,7 +25,7 @@ prometheus:
     probeNamespaceSelector:
       matchLabels:
         name: monitoring-staging
-    # lb-exporter 메트릭 수집 설정
+    # 임시 해결책: additionalScrapeConfigs 사용 (ServiceMonitor 문제로 인해)
     additionalScrapeConfigs:
       - job_name: 'ktcloud-lb'
         metrics_path: /metrics
@@ -48,20 +48,55 @@ grafana:
   adminPassword: StagingAdmin123
   service:
     type: ClusterIP
-  ingress:
-    enabled: true
-    ingressClassName: nginx
-    hosts:
-      - staging.grafana.devtron.click
-    path: /
-    pathType: Prefix
+  # 영구 저장소 설정
   persistence:
     enabled: true
     type: pvc
     size: 5Gi
     storageClassName: ktc-nfs-client
-    accessModes:
-      - ReadWriteOnce
-  initChownData:
-    enabled: false
-EOF < /dev/null
+  # 데이터 소스 설정
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          url: http://prometheus-staging-kube-promet-prometheus.monitoring-staging:9090
+          access: proxy
+          isDefault: true
+          uid: prometheus-uid
+
+# 기본 AlertManager 설정
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: ktc-nfs-client
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 2Gi
+
+# Prometheus Node Exporter 설정 (리소스 절약을 위해 비활성화)
+nodeExporter:
+  enabled: false
+
+# kube-state-metrics 설정
+kubeStateMetrics:
+  enabled: true
+
+# Prometheus Operator 설정
+prometheusOperator:
+  enabled: true
+  resources:
+    limits:
+      cpu: 200m
+      memory: 200Mi
+    requests:
+      cpu: 100m
+      memory: 100Mi
+
+# 기본 네임스페이스 라벨 설정 (네임스페이스 선택기용)
+namespaceOverride: "monitoring-staging"
