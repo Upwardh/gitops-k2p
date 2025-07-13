@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: prod-lb-exporter-account2
+  namespace: monitoring-prod
+  labels:
+    app: lb-exporter-account2
+    release: prometheus-prod
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9105"
+    prometheus.io/environment: "prod"
+spec:
+  type: ClusterIP
+  ports:
+  - port: 9105
+    targetPort: 9105
+    protocol: TCP
+    name: metrics
+  selector:
+    app: lb-exporter-account2

@@ -1,0 +1,102 @@
+# values.yaml (prometheus-values-staging.yaml)
+# Prometheus 스테이징환경 설정
+# Grafana URL: http://staging.grafana.devtron.click
+prometheus:
+  prometheusSpec:
+    # 영구 저장소 설정
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: ktc-nfs-client
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+    # 네임스페이스 격리 설정 - monitoring-staging 네임스페이스만 모니터링
+    serviceMonitorNamespaceSelector:
+      matchLabels:
+        name: monitoring-staging
+    ruleNamespaceSelector:
+      matchLabels:
+        name: monitoring-staging
+    podMonitorNamespaceSelector:
+      matchLabels:
+        name: monitoring-staging
+    probeNamespaceSelector:
+      matchLabels:
+        name: monitoring-staging
+    # 임시 해결책: additionalScrapeConfigs 사용 (ServiceMonitor 문제로 인해)
+    additionalScrapeConfigs:
+      - job_name: 'ktcloud-lb'
+        metrics_path: /metrics
+        static_configs:
+          - targets: ['staging-lb-exporter.monitoring-staging:9105']
+        scrape_interval: 60s
+        scrape_timeout: 20s
+        honor_labels: true
+      - job_name: 'ktcloud-lb-account2'
+        metrics_path: /metrics
+        static_configs:
+          - targets: ['staging-lb-exporter-account2.monitoring-staging:9105']
+        scrape_interval: 60s
+        scrape_timeout: 20s
+        honor_labels: true
+
+# Grafana 스테이징환경 설정
+grafana:
+  enabled: true
+  adminPassword: StagingAdmin123
+  service:
+    type: ClusterIP
+  # 영구 저장소 설정
+  persistence:
+    enabled: true
+    type: pvc
+    size: 5Gi
+    storageClassName: ktc-nfs-client
+  # 데이터 소스 설정
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          url: http://prometheus-staging-kube-promet-prometheus.monitoring-staging:9090
+          access: proxy
+          isDefault: true
+          uid: prometheus-uid
+
+# 기본 AlertManager 설정
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: ktc-nfs-client
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 2Gi
+
+# Prometheus Node Exporter 설정 (리소스 절약을 위해 비활성화)
+nodeExporter:
+  enabled: false
+
+# kube-state-metrics 설정
+kubeStateMetrics:
+  enabled: true
+
+# Prometheus Operator 설정
+prometheusOperator:
+  enabled: true
+  resources:
+    limits:
+      cpu: 200m
+      memory: 200Mi
+    requests:
+      cpu: 100m
+      memory: 100Mi
+
+# 기본 네임스페이스 라벨 설정 (네임스페이스 선택기용)
+namespaceOverride: "monitoring-staging"

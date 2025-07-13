@@ -1,0 +1,31 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ktcloud-lb-exporter-account2
+  namespace: monitoring-dev
+  labels:
+    app.kubernetes.io/component: exporter
+    app.kubernetes.io/name: lb-exporter-account2
+    release: prometheus-dev
+spec:
+  endpoints:
+  - honorLabels: true
+    interval: 60s
+    path: /metrics
+    port: metrics
+    relabelings:
+    - action: replace
+      replacement: ktcloud-lb-account2
+      targetLabel: job
+    - action: replace
+      replacement: dev
+      sourceLabels:
+      - __meta_kubernetes_service_annotation_prometheus_io_environment
+      targetLabel: environment
+    scrapeTimeout: 20s
+  namespaceSelector:
+    matchNames:
+    - monitoring-dev
+  selector:
+    matchLabels:
+      app: lb-exporter-account2
