@@ -1,0 +1,66 @@
+# values.yaml (prometheus-values-dev.yaml)
+# Prometheus 개발환경 설정 - v1.0.1 (CI/CD 테스트)
+# Grafana URL: http://dev.grafana.devtron.click
+prometheus:
+  prometheusSpec:
+    # 영구 저장소 설정
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: ktc-nfs-client
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+    # 네임스페이스 격리 설정 - monitoring-dev 네임스페이스만 모니터링
+    serviceMonitorNamespaceSelector:
+      matchLabels:
+        name: monitoring-dev
+    ruleNamespaceSelector:
+      matchLabels:
+        name: monitoring-dev
+    podMonitorNamespaceSelector:
+      matchLabels:
+        name: monitoring-dev
+    probeNamespaceSelector:
+      matchLabels:
+        name: monitoring-dev
+    # 임시 해결책: additionalScrapeConfigs 사용 (ServiceMonitor 문제로 인해)
+    additionalScrapeConfigs:
+      - job_name: 'ktcloud-lb'
+        metrics_path: /metrics
+        static_configs:
+          - targets: ['dev-lb-exporter.monitoring-dev:9105']
+        scrape_interval: 60s
+        scrape_timeout: 20s
+        honor_labels: true
+      - job_name: 'ktcloud-lb-account2'
+        metrics_path: /metrics
+        static_configs:
+          - targets: ['dev-lb-exporter-account2.monitoring-dev:9105']
+        scrape_interval: 60s
+        scrape_timeout: 20s
+        honor_labels: true
+
+# Grafana 개발환경 설정
+grafana:
+  enabled: true
+  adminPassword: DevAdmin123
+  service:
+    type: ClusterIP
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - dev.grafana.devtron.click
+    path: /
+    pathType: Prefix
+  persistence:
+    enabled: true
+    type: pvc
+    size: 5Gi
+    storageClassName: ktc-nfs-client
+    accessModes:
+      - ReadWriteOnce
+  initChownData:
+    enabled: false

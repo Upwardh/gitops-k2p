@@ -1,0 +1,82 @@
+# values.yaml (prometheus-values-prod.yaml)
+# Prometheus 프로덕션환경 설정
+# Grafana URL: http://prod.grafana.devtron.click
+prometheus:
+  prometheusSpec:
+    # 영구 저장소 설정
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: ktc-nfs-client
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 20Gi  # 프로덕션은 더 큰 스토리지
+    # 네임스페이스 격리 설정 - monitoring-prod 네임스페이스만 모니터링
+    serviceMonitorNamespaceSelector:
+      matchLabels:
+        name: monitoring-prod
+    ruleNamespaceSelector:
+      matchLabels:
+        name: monitoring-prod
+    podMonitorNamespaceSelector:
+      matchLabels:
+        name: monitoring-prod
+    probeNamespaceSelector:
+      matchLabels:
+        name: monitoring-prod
+    # lb-exporter 메트릭 수집 설정
+    additionalScrapeConfigs:
+      - job_name: 'ktcloud-lb'
+        metrics_path: /metrics
+        static_configs:
+          - targets: ['prod-lb-exporter.monitoring-prod:9105']
+        scrape_interval: 60s
+        scrape_timeout: 20s
+        honor_labels: true
+      - job_name: 'ktcloud-lb-account2'
+        metrics_path: /metrics
+        static_configs:
+          - targets: ['prod-lb-exporter-account2.monitoring-prod:9105']
+        scrape_interval: 60s
+        scrape_timeout: 20s
+        honor_labels: true
+    # 프로덕션 리소스 설정
+    resources:
+      requests:
+        memory: 2Gi
+        cpu: 1000m
+      limits:
+        memory: 4Gi
+        cpu: 2000m
+
+# Grafana 프로덕션환경 설정
+grafana:
+  enabled: true
+  adminPassword: ProdAdmin123
+  service:
+    type: ClusterIP
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - prod.grafana.devtron.click
+    path: /
+    pathType: Prefix
+  persistence:
+    enabled: true
+    type: pvc
+    size: 10Gi  # 프로덕션은 더 큰 스토리지
+    storageClassName: ktc-nfs-client
+    accessModes:
+      - ReadWriteOnce
+  initChownData:
+    enabled: false
+  # 프로덕션 리소스 설정
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 100m
+    limits:
+      memory: 1Gi
+      cpu: 500m

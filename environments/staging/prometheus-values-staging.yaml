@@ -1,0 +1,67 @@
+# values.yaml (prometheus-values-staging.yaml)
+# Prometheus 스테이징환경 설정
+# Grafana URL: http://staging.grafana.devtron.click
+prometheus:
+  prometheusSpec:
+    # 영구 저장소 설정
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: ktc-nfs-client
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+    # 네임스페이스 격리 설정 - monitoring-staging 네임스페이스만 모니터링
+    serviceMonitorNamespaceSelector:
+      matchLabels:
+        name: monitoring-staging
+    ruleNamespaceSelector:
+      matchLabels:
+        name: monitoring-staging
+    podMonitorNamespaceSelector:
+      matchLabels:
+        name: monitoring-staging
+    probeNamespaceSelector:
+      matchLabels:
+        name: monitoring-staging
+    # lb-exporter 메트릭 수집 설정
+    additionalScrapeConfigs:
+      - job_name: 'ktcloud-lb'
+        metrics_path: /metrics
+        static_configs:
+          - targets: ['staging-lb-exporter.monitoring-staging:9105']
+        scrape_interval: 60s
+        scrape_timeout: 20s
+        honor_labels: true
+      - job_name: 'ktcloud-lb-account2'
+        metrics_path: /metrics
+        static_configs:
+          - targets: ['staging-lb-exporter-account2.monitoring-staging:9105']
+        scrape_interval: 60s
+        scrape_timeout: 20s
+        honor_labels: true
+
+# Grafana 스테이징환경 설정
+grafana:
+  enabled: true
+  adminPassword: StagingAdmin123
+  service:
+    type: ClusterIP
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - staging.grafana.devtron.click
+    path: /
+    pathType: Prefix
+  persistence:
+    enabled: true
+    type: pvc
+    size: 5Gi
+    storageClassName: ktc-nfs-client
+    accessModes:
+      - ReadWriteOnce
+  initChownData:
+    enabled: false
+EOF < /dev/null
