@@ -95,8 +95,8 @@ jobs:
           # Ensure namespace exists
           kubectl create namespace monitoring-dev --dry-run=client -o yaml | kubectl apply -f -
           
-          # Apply lb-exporter manifests
-          kubectl apply -f environments/lb-exporter/dev/
+          # Apply lb-exporter manifests (disable validation for network timeout)
+          kubectl apply -f environments/lb-exporter/dev/ --validate=false
           
           # Wait for deployments
           kubectl rollout status deployment/dev-lb-exporter -n monitoring-dev --timeout=300s
@@ -152,8 +152,8 @@ jobs:
           # Ensure namespace exists
           kubectl create namespace monitoring-staging --dry-run=client -o yaml | kubectl apply -f -
           
-          # Apply lb-exporter manifests
-          kubectl apply -f environments/lb-exporter/staging/
+          # Apply lb-exporter manifests (disable validation for network timeout)
+          kubectl apply -f environments/lb-exporter/staging/ --validate=false
           
           # Wait for deployments
           kubectl rollout status deployment/staging-lb-exporter -n monitoring-staging --timeout=300s
@@ -209,8 +209,8 @@ jobs:
           # Ensure namespace exists
           kubectl create namespace monitoring-prod --dry-run=client -o yaml | kubectl apply -f -
           
-          # Apply lb-exporter manifests
-          kubectl apply -f environments/lb-exporter/prod/
+          # Apply lb-exporter manifests (disable validation for network timeout)
+          kubectl apply -f environments/lb-exporter/prod/ --validate=false
           
           # Wait for deployments
           kubectl rollout status deployment/prod-lb-exporter -n monitoring-prod --timeout=300s
