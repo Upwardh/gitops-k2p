@@ -93,7 +93,7 @@ jobs:
           echo "=== Deploying LB Exporters to monitoring-dev ==="
           
           # Ensure namespace exists
-          kubectl create namespace monitoring-dev --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create namespace monitoring-dev --dry-run=client -o yaml | kubectl apply -f - --validate=false
           
           # Apply lb-exporter manifests (disable validation for network timeout)
           kubectl apply -f environments/lb-exporter/dev/ --validate=false
@@ -150,7 +150,7 @@ jobs:
           echo "=== Deploying LB Exporters to monitoring-staging ==="
           
           # Ensure namespace exists
-          kubectl create namespace monitoring-staging --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create namespace monitoring-staging --dry-run=client -o yaml | kubectl apply -f - --validate=false
           
           # Apply lb-exporter manifests (disable validation for network timeout)
           kubectl apply -f environments/lb-exporter/staging/ --validate=false
@@ -207,7 +207,7 @@ jobs:
           echo "=== Deploying LB Exporters to monitoring-prod ==="
           
           # Ensure namespace exists
-          kubectl create namespace monitoring-prod --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create namespace monitoring-prod --dry-run=client -o yaml | kubectl apply -f - --validate=false
           
           # Apply lb-exporter manifests (disable validation for network timeout)
           kubectl apply -f environments/lb-exporter/prod/ --validate=false
