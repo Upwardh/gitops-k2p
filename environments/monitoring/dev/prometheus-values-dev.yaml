@@ -43,6 +43,10 @@ prometheus:
         honor_labels: true
 
 # Grafana 개발환경 설정
+# Node Exporter 비활성화 (포트 충돌 방지)
+nodeExporter:
+  enabled: false
+
 grafana:
   enabled: true
   adminPassword: DevAdmin123

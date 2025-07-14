@@ -1,0 +1,183 @@
+name: Monitoring Stack Deployment
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'environments/monitoring/**'
+      - '.github/workflows/monitoring-stack.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'environments/monitoring/**'
+
+env:
+  KUBECTL_VERSION: v1.30.4
+  HELM_VERSION: v3.12.0
+
+jobs:
+  deploy-dev:
+    name: Deploy to Dev Environment
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+    environment: development
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: ${{ env.KUBECTL_VERSION }}
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Configure kubectl
+        run: |
+          echo "${{ secrets.KUBECONFIG_DEV }}" | base64 -d > ~/.kube/config
+
+      - name: Add Helm repositories
+        run: |
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo update
+
+      - name: Deploy Monitoring Stack to Dev
+        run: |
+          echo "=== Deploying to monitoring-dev ==="
+          
+          # Ensure namespace exists with proper labels
+          kubectl create namespace monitoring-dev --dry-run=client -o yaml | kubectl apply -f -
+          kubectl label namespace monitoring-dev name=monitoring-dev --overwrite
+          
+          # Deploy Prometheus + Grafana
+          helm upgrade --install prometheus-dev prometheus-community/kube-prometheus-stack \
+            -f environments/monitoring/dev/prometheus-values-dev.yaml \
+            -n monitoring-dev \
+            --wait --timeout=10m
+          
+          echo "✅ Dev monitoring stack deployed successfully"
+
+  deploy-staging:
+    name: Deploy to Staging Environment
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: staging
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: ${{ env.KUBECTL_VERSION }}
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Configure kubectl
+        run: |
+          echo "${{ secrets.KUBECONFIG_STAGING }}" | base64 -d > ~/.kube/config
+
+      - name: Add Helm repositories
+        run: |
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo update
+
+      - name: Deploy Monitoring Stack to Staging
+        run: |
+          echo "=== Deploying to monitoring-staging ==="
+          
+          # Ensure namespace exists with proper labels
+          kubectl create namespace monitoring-staging --dry-run=client -o yaml | kubectl apply -f -
+          kubectl label namespace monitoring-staging name=monitoring-staging --overwrite
+          
+          # Deploy Prometheus + Grafana
+          helm upgrade --install prometheus-staging prometheus-community/kube-prometheus-stack \
+            -f environments/monitoring/staging/prometheus-values-staging.yaml \
+            -n monitoring-staging \
+            --wait --timeout=10m
+          
+          echo "✅ Staging monitoring stack deployed successfully"
+
+  deploy-prod:
+    name: Deploy to Production Environment
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: deploy-staging
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: ${{ env.KUBECTL_VERSION }}
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Configure kubectl
+        run: |
+          echo "${{ secrets.KUBECONFIG_PROD }}" | base64 -d > ~/.kube/config
+
+      - name: Add Helm repositories
+        run: |
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo update
+
+      - name: Deploy Monitoring Stack to Production
+        run: |
+          echo "=== Deploying to monitoring-prod ==="
+          
+          # Ensure namespace exists with proper labels
+          kubectl create namespace monitoring-prod --dry-run=client -o yaml | kubectl apply -f -
+          kubectl label namespace monitoring-prod name=monitoring-prod --overwrite
+          
+          # Deploy Prometheus + Grafana (HA configuration)
+          helm upgrade --install prometheus-prod prometheus-community/kube-prometheus-stack \
+            -f environments/monitoring/prod/prometheus-values-prod.yaml \
+            -n monitoring-prod \
+            --wait --timeout=15m
+          
+          echo "✅ Production monitoring stack deployed successfully"
+
+  status-report:
+    name: Deployment Status Report
+    runs-on: ubuntu-latest
+    needs: [deploy-dev, deploy-staging, deploy-prod]
+    if: always() && (needs.deploy-dev.result == 'success' || needs.deploy-staging.result == 'success' || needs.deploy-prod.result == 'success')
+    steps:
+      - name: Report Deployment Status
+        run: |
+          echo "🚀 **Monitoring Stack Deployment Summary**"
+          echo ""
+          
+          if [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+            echo "🟢 **Development Environment Deployed**"
+            echo "- URL: dev.grafana.devtron.click"
+            echo "- Login: admin / DevAdmin123"
+          fi
+          
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "🟡 **Staging Environment Deployed**"
+            echo "- URL: staging.grafana.devtron.click"
+            echo "- Login: admin / StagingAdmin123"
+            echo ""
+            echo "🔴 **Production Environment Deployed**"
+            echo "- URL: prod.grafana.devtron.click" 
+            echo "- Login: admin / ProdAdmin123"
+          fi
+          
+          echo ""
+          echo "📊 **Available Dashboards:**"
+          echo "- KT Cloud Account - ALL"
+          echo "- KT Cloud LB Dashboard - ktcloud_test (DX-M1)"
+          echo "- KT Cloud LB Dashboard - semascrd_d019_gov (DX-G-YS)"

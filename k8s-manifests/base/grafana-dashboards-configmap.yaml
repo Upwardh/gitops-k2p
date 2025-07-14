@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kt-cloud-dashboards
+  labels:
+    grafana_dashboard: "1"
+data:
+  kt-cloud-all.json: |
+    {
+      "title": "KT Cloud Account - ALL",
+      "uid": "ktcloud-all",
+      "tags": ["ktcloud", "loadbalancer", "monitoring"],
+      "refresh": "30s",
+      "time": {
+        "from": "now-1h",
+        "to": "now"
+      },
+      "templating": {
+        "list": [
+          {
+            "name": "lb_name",
+            "label": "Load Balancer",
+            "type": "query",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${DS_PROMETHEUS}"
+            },
+            "query": "label_values(ktcloud_lb_info, lb_name)",
+            "multi": true,
+            "includeAll": true,
+            "allValue": ".*"
+          },
+          {
+            "name": "selected_lb", 
+            "label": "상세 조회 LB (선택)",
+            "type": "query",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${DS_PROMETHEUS}"
+            },
+            "query": "label_values(ktcloud_lb_info, lb_name)",
+            "multi": false,
+            "includeAll": false
+          },
+          {
+            "name": "zone",
+            "label": "Zone", 
+            "type": "query",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${DS_PROMETHEUS}"
+            },
+            "query": "label_values(ktcloud_lb_info, zone)",
+            "multi": true,
+            "includeAll": true,
+            "allValue": ".*"
+          }
+        ]
+      },
+      "panels": [
+        {
+          "title": "총 LB 수",
+          "type": "stat",
+          "targets": [
+            {
+              "expr": "sum(ktcloud_lb_total_count)",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${DS_PROMETHEUS}"
+              }
+            }
+          ],
+          "gridPos": {"h": 3, "w": 5, "x": 0, "y": 1}
+        }
+      ]
+    }

@@ -1,0 +1,196 @@
+name: LB Exporter CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'my-k8s-project/lb-exporter/**'
+      - 'k8s-manifests/**'
+      - '.github/workflows/lb-exporter.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'my-k8s-project/lb-exporter/**'
+      - 'k8s-manifests/**'
+
+env:
+  REGISTRY: registry.cloud.kt.com
+  IMAGE_NAME: nqtv7l5h/lb-exporter
+  KUBECTL_VERSION: v1.30.4
+
+jobs:
+  build:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-digest: ${{ steps.build.outputs.digest }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to KT Cloud Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch,prefix={{branch}}-
+            type=ref,event=pr,prefix=pr-
+            type=sha,prefix={{branch}}-
+
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: ./my-k8s-project/lb-exporter
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy-dev:
+    name: Deploy to Dev Environment
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+    needs: build
+    environment: development
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: ${{ env.KUBECTL_VERSION }}
+
+      - name: Configure kubectl
+        run: |
+          echo "${{ secrets.KUBECONFIG_DEV }}" | base64 -d > ~/.kube/config
+
+      - name: Deploy to Dev
+        run: |
+          echo "=== Deploying LB Exporter to monitoring-dev ==="
+          
+          # Ensure namespace exists
+          kubectl create namespace monitoring-dev --dry-run=client -o yaml | kubectl apply -f -
+          
+          # Copy registry secret if not exists
+          if ! kubectl get secret ktcloud-registry-secret -n monitoring-dev >/dev/null 2>&1; then
+            kubectl get secret ktcloud-registry-secret -n monitoring -o yaml | \
+            sed 's/namespace: monitoring/namespace: monitoring-dev/' | \
+            kubectl apply -f -
+          fi
+          
+          # Update image tag in kustomization and deploy
+          sed -i "s|newTag:.*|newTag: develop-${{ github.sha }}|" k8s-manifests/overlays/dev/kustomization.yaml
+          kubectl apply -k k8s-manifests/overlays/dev/
+          
+          # Deploy account2 manually (from working dev setup)
+          kubectl get deployment dev-lb-exporter-account2 -n monitoring-dev -o yaml | \
+          kubectl apply -f - || echo "Account2 deployment may already exist"
+          kubectl get service dev-lb-exporter-account2 -n monitoring-dev -o yaml | \
+          kubectl apply -f - || echo "Account2 service may already exist"
+          
+          echo "✅ Dev LB Exporter deployed successfully"
+
+  deploy-staging:
+    name: Deploy to Staging Environment
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    environment: staging
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: ${{ env.KUBECTL_VERSION }}
+
+      - name: Configure kubectl
+        run: |
+          echo "${{ secrets.KUBECONFIG_STAGING }}" | base64 -d > ~/.kube/config
+
+      - name: Deploy to Staging
+        run: |
+          echo "=== Deploying LB Exporter to monitoring-staging ==="
+          
+          # Ensure namespace exists
+          kubectl create namespace monitoring-staging --dry-run=client -o yaml | kubectl apply -f -
+          
+          # Copy registry secret if not exists
+          if ! kubectl get secret ktcloud-registry-secret -n monitoring-staging >/dev/null 2>&1; then
+            kubectl get secret ktcloud-registry-secret -n monitoring -o yaml | \
+            sed 's/namespace: monitoring/namespace: monitoring-staging/' | \
+            kubectl apply -f -
+          fi
+          
+          # Update image tag and deploy
+          sed -i "s|newTag:.*|newTag: main-${{ github.sha }}|" k8s-manifests/overlays/staging/kustomization.yaml
+          kubectl apply -k k8s-manifests/overlays/staging/
+          
+          # Deploy account2 manually
+          kubectl get deployment staging-lb-exporter-account2 -n monitoring-staging -o yaml | \
+          kubectl apply -f - || echo "Account2 deployment may already exist"
+          kubectl get service staging-lb-exporter-account2 -n monitoring-staging -o yaml | \
+          kubectl apply -f - || echo "Account2 service may already exist"
+          
+          echo "✅ Staging LB Exporter deployed successfully"
+
+  deploy-prod:
+    name: Deploy to Production Environment
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: [build, deploy-staging]
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: ${{ env.KUBECTL_VERSION }}
+
+      - name: Configure kubectl
+        run: |
+          echo "${{ secrets.KUBECONFIG_PROD }}" | base64 -d > ~/.kube/config
+
+      - name: Deploy to Production
+        run: |
+          echo "=== Deploying LB Exporter to monitoring-prod ==="
+          
+          # Ensure namespace exists
+          kubectl create namespace monitoring-prod --dry-run=client -o yaml | kubectl apply -f -
+          
+          # Copy registry secret if not exists
+          if ! kubectl get secret ktcloud-registry-secret -n monitoring-prod >/dev/null 2>&1; then
+            kubectl get secret ktcloud-registry-secret -n monitoring -o yaml | \
+            sed 's/namespace: monitoring/namespace: monitoring-prod/' | \
+            kubectl apply -f -
+          fi
+          
+          # Update image tag and deploy (HA: 2 replicas)
+          sed -i "s|newTag:.*|newTag: main-${{ github.sha }}|" k8s-manifests/overlays/prod/kustomization.yaml
+          kubectl apply -k k8s-manifests/overlays/prod/
+          
+          # Deploy account2 manually
+          kubectl get deployment prod-lb-exporter-account2 -n monitoring-prod -o yaml | \
+          kubectl apply -f - || echo "Account2 deployment may already exist"
+          kubectl get service prod-lb-exporter-account2 -n monitoring-prod -o yaml | \
+          kubectl apply -f - || echo "Account2 service may already exist"
+          
+          echo "✅ Production LB Exporter deployed successfully"

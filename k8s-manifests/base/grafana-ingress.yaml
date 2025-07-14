@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    # cert-manager.io/cluster-issuer: letsencrypt-prod  # HTTPS 사용 시
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: grafana.devtron.click
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: prometheus-grafana
+            port:
+              number: 80
+  # tls:  # HTTPS 사용 시 활성화
+  # - hosts:
+  #   - PLACEHOLDER_GRAFANA_HOST
+  #   secretName: grafana-tls-secret

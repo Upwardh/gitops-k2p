@@ -1,0 +1,49 @@
+# my global config
+global:
+  scrape_interval: 5s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 5s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  # scrape_timeout is set to the global default (10s).
+  #query:
+  #lookback-delta: 30s
+
+
+# Alertmanager configuration
+#alerting:
+#  alertmanagers:
+#    - static_configs:
+#        - targets:
+#           - localhost:9093
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+  # Alert Rule 파일들의 위치
+   - "/prometheus/prometheus-3.1.0.linux-amd64/rules/*.yml"
+
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: "prometheus"
+
+    # metrics_path defaults to '/metrics'
+    # scheme defaults to 'http'.
+
+
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # KT Cloud Load Balancer 익스포터
+  - job_name: 'ktcloud-lb'
+    static_configs:
+      - targets: ['localhost:9105'] 
+        labels:
+          environment: 'production'
+          service: 'ktcloud-lb'
+    scrape_interval: 60s
+    scrape_timeout: 20s
+    metrics_path: /metrics
+    honor_labels: true

@@ -1,47 +1,45 @@
-# values.yaml (prometheus-values-prod.yaml)
-# Prometheus 프로덕션환경 설정
-# Grafana URL: http://prod.grafana.devtron.click
 prometheus:
   prometheusSpec:
-    # 영구 저장소 설정 (프로덕션용 더 큰 용량)
-    storageSpec:
-      volumeClaimTemplate:
-        spec:
-          storageClassName: ktc-nfs-client
-          accessModes: ["ReadWriteOnce"]
-          resources:
-            requests:
-              storage: 20Gi
-    # 네임스페이스 격리 설정 - monitoring-prod 네임스페이스만 모니터링
-    serviceMonitorNamespaceSelector:
-      matchLabels:
-        name: monitoring-prod
-    ruleNamespaceSelector:
-      matchLabels:
-        name: monitoring-prod
+    additionalScrapeConfigs:
+    - honor_labels: true
+      job_name: ktcloud-lb
+      metrics_path: /metrics
+      scrape_interval: 60s
+      scrape_timeout: 20s
+      static_configs:
+      - targets:
+        - prod-lb-exporter.monitoring-prod:9105
+    - honor_labels: true
+      job_name: ktcloud-lb-account2
+      metrics_path: /metrics
+      scrape_interval: 60s
+      scrape_timeout: 20s
+      static_configs:
+      - targets:
+        - prod-lb-exporter-account2.monitoring-prod:9105
     podMonitorNamespaceSelector:
       matchLabels:
         name: monitoring-prod
     probeNamespaceSelector:
       matchLabels:
         name: monitoring-prod
-    # 임시 해결책: additionalScrapeConfigs 사용 (ServiceMonitor 문제로 인해)
-    additionalScrapeConfigs:
-      - job_name: 'ktcloud-lb'
-        metrics_path: /metrics
-        static_configs:
-          - targets: ['prod-lb-exporter.monitoring-prod:9105']
-        scrape_interval: 60s
-        scrape_timeout: 20s
-        honor_labels: true
-      - job_name: 'ktcloud-lb-account2'
-        metrics_path: /metrics
-        static_configs:
-          - targets: ['prod-lb-exporter-account2.monitoring-prod:9105']
-        scrape_interval: 60s
-        scrape_timeout: 20s
-        honor_labels: true
-    # 프로덕션용 리소스 설정
+    ruleNamespaceSelector:
+      matchLabels:
+        name: monitoring-prod
+    serviceMonitorNamespaceSelector:
+      matchLabels:
+        name: monitoring-prod
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+          - ReadWriteOnce
+          resources:
+            requests:
+              storage: 20Gi
+          storageClassName: ktc-nfs-client
+    # 프로덕션용 고가용성 설정
+    replicas: 2
     resources:
       limits:
         cpu: 2000m
@@ -49,22 +47,47 @@ prometheus:
       requests:
         cpu: 500m
         memory: 2Gi
-    # 프로덕션용 복제본 설정
-    replicas: 2
 
-# Grafana 프로덕션환경 설정
+# Node Exporter 비활성화 (포트 충돌 방지)
+nodeExporter:
+  enabled: false
+
+# 프로덕션용 AlertManager 고가용성
+alertmanager:
+  alertmanagerSpec:
+    replicas: 2
+    storage:
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+          - ReadWriteOnce
+          resources:
+            requests:
+              storage: 5Gi
+          storageClassName: ktc-nfs-client
+
 grafana:
-  enabled: true
   adminPassword: ProdAdmin123
-  service:
-    type: ClusterIP
-  # 영구 저장소 설정 (프로덕션용 더 큰 용량)
-  persistence:
+  enabled: true
+  ingress:
     enabled: true
-    type: pvc
+    hosts:
+    - prod.grafana.devtron.click
+    ingressClassName: nginx
+    path: /
+    pathType: Prefix
+  initChownData:
+    enabled: false
+  persistence:
+    accessModes:
+    - ReadWriteOnce
+    enabled: true
     size: 10Gi
     storageClassName: ktc-nfs-client
-  # 프로덕션용 리소스 설정
+    type: pvc
+  service:
+    type: ClusterIP
+  # 프로덕션용 리소스 할당
   resources:
     limits:
       cpu: 500m
@@ -72,65 +95,3 @@ grafana:
     requests:
       cpu: 200m
       memory: 256Mi
-  # 데이터 소스 설정
-  datasources:
-    datasources.yaml:
-      apiVersion: 1
-      datasources:
-        - name: Prometheus
-          type: prometheus
-          url: http://prometheus-prod-kube-promet-prometheus.monitoring-prod:9090
-          access: proxy
-          isDefault: true
-          uid: prometheus-uid
-
-# 기본 AlertManager 설정
-alertmanager:
-  enabled: true
-  alertmanagerSpec:
-    storage:
-      volumeClaimTemplate:
-        spec:
-          storageClassName: ktc-nfs-client
-          accessModes: ["ReadWriteOnce"]
-          resources:
-            requests:
-              storage: 5Gi
-    # 프로덕션용 복제본
-    replicas: 2
-    resources:
-      limits:
-        cpu: 200m
-        memory: 256Mi
-      requests:
-        cpu: 100m
-        memory: 128Mi
-
-# Prometheus Node Exporter 설정 (리소스 절약을 위해 비활성화)
-nodeExporter:
-  enabled: false
-
-# kube-state-metrics 설정
-kubeStateMetrics:
-  enabled: true
-  resources:
-    limits:
-      cpu: 200m
-      memory: 200Mi
-    requests:
-      cpu: 100m
-      memory: 100Mi
-
-# Prometheus Operator 설정
-prometheusOperator:
-  enabled: true
-  resources:
-    limits:
-      cpu: 400m
-      memory: 400Mi
-    requests:
-      cpu: 200m
-      memory: 200Mi
-
-# 기본 네임스페이스 라벨 설정 (네임스페이스 선택기용)
-namespaceOverride: "monitoring-prod"

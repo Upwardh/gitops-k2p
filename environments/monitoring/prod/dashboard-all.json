@@ -5,7 +5,7 @@
         "builtIn": 1,
         "datasource": {
           "type": "grafana",
-          "uid": "-- Grafana --"
+          "uid": "prometheus"
         },
         "enable": true,
         "hide": true,
@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 125,
+  "id": 66,
   "links": [],
   "panels": [
     {
@@ -35,7 +35,7 @@
       "type": "row"
     },
     {
-      "datasource": "eerooc5aa1x4wc",
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -93,7 +93,7 @@
       "pluginVersion": "12.0.2",
       "targets": [
         {
-          "datasource": "eerooc5aa1x4wc",
+          "datasource": "prometheus",
           "expr": "ktcloud_lb_total_count",
           "interval": "",
           "legendFormat": "",
@@ -104,7 +104,7 @@
       "type": "stat"
     },
     {
-      "datasource": "eerooc5aa1x4wc",
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -159,7 +159,7 @@
       "pluginVersion": "12.0.2",
       "targets": [
         {
-          "datasource": "eerooc5aa1x4wc",
+          "datasource": "prometheus",
           "expr": "sum(ktcloud_lb_info)",
           "interval": "",
           "legendFormat": "",
@@ -170,7 +170,7 @@
       "type": "stat"
     },
     {
-      "datasource": "eerooc5aa1x4wc",
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -225,7 +225,7 @@
       "pluginVersion": "12.0.2",
       "targets": [
         {
-          "datasource": "eerooc5aa1x4wc",
+          "datasource": "prometheus",
           "expr": "count(ktcloud_lb_info == 0)",
           "interval": "",
           "legendFormat": "",
@@ -236,7 +236,7 @@
       "type": "stat"
     },
     {
-      "datasource": "eerooc5aa1x4wc",
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -287,7 +287,7 @@
       "pluginVersion": "12.0.2",
       "targets": [
         {
-          "datasource": "eerooc5aa1x4wc",
+          "datasource": "prometheus",
           "expr": "ktcloud_lb_service_type_count",
           "interval": "",
           "legendFormat": "{{service_type}}",
@@ -298,7 +298,7 @@
       "type": "piechart"
     },
     {
-      "datasource": "eerooc5aa1x4wc",
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -377,7 +377,7 @@
       "pluginVersion": "12.0.2",
       "targets": [
         {
-          "datasource": "eerooc5aa1x4wc",
+          "datasource": "prometheus",
           "expr": "ktcloud_lb_server_count{lb_name=~\"$lb_name\"}",
           "interval": "",
           "legendFormat": "{{lb_name}} - 연결된 서버 수",
@@ -388,7 +388,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": "eerooc5aa1x4wc",
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -570,7 +570,7 @@
       "pluginVersion": "12.0.2",
       "targets": [
         {
-          "datasource": "eerooc5aa1x4wc",
+          "datasource": "prometheus",
           "expr": "ktcloud_lb_info",
           "format": "table",
           "instant": true,
@@ -626,7 +626,7 @@
       "type": "row"
     },
     {
-      "datasource": "eerooc5aa1x4wc",
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -766,7 +766,7 @@
       "pluginVersion": "12.0.2",
       "targets": [
         {
-          "datasource": "eerooc5aa1x4wc",
+          "datasource": "prometheus",
           "expr": "ktcloud_lb_server_state{lb_name=\"$selected_lb\"}",
           "format": "table",
           "instant": true,
@@ -805,7 +805,7 @@
       "type": "table"
     },
     {
-      "datasource": "eerooc5aa1x4wc",
+      "datasource": "prometheus",
       "description": "서버별 평균 응답 시간을 모니터링합니다.",
       "fieldConfig": {
         "defaults": {
@@ -891,7 +891,7 @@
       "pluginVersion": "12.0.2",
       "targets": [
         {
-          "datasource": "eerooc5aa1x4wc",
+          "datasource": "prometheus",
           "expr": "ktcloud_server_avg_ttfb_ms{lb_name=\"$selected_lb\"}",
           "interval": "",
           "legendFormat": "{{server_ip}}:{{server_port}} (TTFB)",
@@ -902,7 +902,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": "eerooc5aa1x4wc",
+      "datasource": "prometheus",
       "description": "서버별 네트워크 처리량",
       "fieldConfig": {
         "defaults": {
@@ -985,7 +985,7 @@
       "pluginVersion": "12.0.2",
       "targets": [
         {
-          "datasource": "eerooc5aa1x4wc",
+          "datasource": "prometheus",
           "expr": "ktcloud_server_throughput_rate_kbps{lb_name=\"$selected_lb\"}",
           "interval": "",
           "legendFormat": "{{server_ip}}:{{server_port}}",
@@ -996,7 +996,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": "eerooc5aa1x4wc",
+      "datasource": "prometheus",
       "description": "서버별 초당 요청 처리량",
       "fieldConfig": {
         "defaults": {
@@ -1079,7 +1079,7 @@
       "pluginVersion": "12.0.2",
       "targets": [
         {
-          "datasource": "eerooc5aa1x4wc",
+          "datasource": "prometheus",
           "expr": "ktcloud_server_requests_rate_per_sec{lb_name=\"$selected_lb\"}",
           "interval": "",
           "legendFormat": "{{server_ip}}:{{server_port}}",
@@ -1090,7 +1090,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": "eerooc5aa1x4wc",
+      "datasource": "prometheus",
       "description": "서버별 현재 활성 연결 수를 모니터링합니다.",
       "fieldConfig": {
         "defaults": {
@@ -1200,14 +1200,14 @@
       "pluginVersion": "12.0.2",
       "targets": [
         {
-          "datasource": "eerooc5aa1x4wc",
+          "datasource": "prometheus",
           "expr": "ktcloud_server_current_connections{lb_name=\"$selected_lb\"} > 0",
           "interval": "",
           "legendFormat": "{{server_ip}}:{{server_port}}",
           "refId": "A"
         },
         {
-          "datasource": "eerooc5aa1x4wc",
+          "datasource": "prometheus",
           "expr": "sum(ktcloud_server_current_connections{lb_name=\"$selected_lb\"} > 0)",
           "interval": "",
           "legendFormat": "Total",
@@ -1232,7 +1232,7 @@
         "allValue": ".*",
         "datasource": {
           "type": "prometheus",
-          "uid": "eerooc5aa1x4wc"
+          "uid": "prometheus"
         },
         "definition": "label_values(ktcloud_lb_info, lb_name)",
         "includeAll": true,
@@ -1255,7 +1255,7 @@
         },
         "datasource": {
           "type": "prometheus",
-          "uid": "eerooc5aa1x4wc"
+          "uid": "prometheus"
         },
         "definition": "label_values(ktcloud_lb_info, lb_name)",
         "includeAll": false,
@@ -1274,7 +1274,7 @@
         "allValue": ".*",
         "datasource": {
           "type": "prometheus",
-          "uid": "eerooc5aa1x4wc"
+          "uid": "prometheus"
         },
         "definition": "label_values(ktcloud_lb_info, zone)",
         "includeAll": true,
@@ -1300,5 +1300,5 @@
   "timezone": "Asia/Seoul",
   "title": "KT Cloud Account - ALL",
   "uid": "ktcloud-lb-enhanced-dashboard",
-  "version": 3
+  "version": 1
 }
