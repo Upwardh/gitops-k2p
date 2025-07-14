@@ -82,8 +82,9 @@ jobs:
           # Update dev environment (from develop branch)
           if [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
             echo "📝 Updating dev environment"
-            # Update environment files would go here
-            # For now, we'll update the existing deployment manifests
+            
+            # Update dev GitOps manifest
+            sed -i "s|image: registry.cloud.kt.com/nqtv7l5h/lb-exporter:.*|image: registry.cloud.kt.com/nqtv7l5h/lb-exporter:$IMAGE_TAG|g" gitops/dev/lb-exporter.yaml
             
             echo "✅ Dev environment updated with image: $IMAGE_TAG"
           fi
@@ -91,6 +92,12 @@ jobs:
           # Update staging/prod environments (from main branch)
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "📝 Updating staging and prod environments"
+            
+            # Update staging GitOps manifest
+            sed -i "s|image: registry.cloud.kt.com/nqtv7l5h/lb-exporter:.*|image: registry.cloud.kt.com/nqtv7l5h/lb-exporter:$IMAGE_TAG|g" gitops/staging/lb-exporter.yaml
+            
+            # Update prod GitOps manifest  
+            sed -i "s|image: registry.cloud.kt.com/nqtv7l5h/lb-exporter:.*|image: registry.cloud.kt.com/nqtv7l5h/lb-exporter:$IMAGE_TAG|g" gitops/prod/lb-exporter.yaml
             
             echo "✅ Staging and prod environments updated with image: $IMAGE_TAG"
           fi
