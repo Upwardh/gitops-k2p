@@ -67,11 +67,11 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - name: Checkout GitOps repo
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITOPS_TOKEN }}
-          fetch-depth: 0
+          token: ${{ github.token }}
+          ref: ${{ github.ref }}
 
       - name: Update image tags in manifests
         run: |
