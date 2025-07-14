@@ -1,5 +1,5 @@
 # values.yaml (prometheus-values-dev.yaml)
-# Prometheus 개발환경 설정 - v1.0.0 (CI/CD 테스트)
+# Prometheus 개발환경 설정 - v1.0.0 (CI/CD 재테스트)
 # Grafana URL: http://dev.grafana.devtron.click
 prometheus:
   prometheusSpec:
