@@ -80,12 +80,15 @@ jobs:
           FULL_TAG_OUTPUT="${{ needs.build.outputs.image-tag }}"
           echo "🔍 Full tag output: $FULL_TAG_OUTPUT"
           
-          # Extract just the tag portion (after the colon) that ends with -latest
-          IMAGE_TAG=$(echo "$FULL_TAG_OUTPUT" | grep -o '[^:]*-latest' | head -1)
+          # Extract tag that ends with -latest from the full registry path
+          # Format: registry.cloud.kt.com/nqtv7l5h/lb-exporter:develop-latest
+          IMAGE_TAG=$(echo "$FULL_TAG_OUTPUT" | tr ',' '\n' | grep '\-latest$' | sed 's/.*://' | head -1)
           
-          # If that fails, try a more specific pattern
+          # Fallback: if still empty, use branch name + latest
           if [ -z "$IMAGE_TAG" ]; then
-            IMAGE_TAG=$(echo "$FULL_TAG_OUTPUT" | sed -n 's/.*:\([^,]*-latest\).*/\1/p' | head -1)
+            BRANCH_NAME="${{ github.ref_name }}"
+            IMAGE_TAG="${BRANCH_NAME}-latest"
+            echo "⚠️  Fallback: Using constructed tag: $IMAGE_TAG"
           fi
           
           echo "🚀 Updating image tag to: $IMAGE_TAG"
