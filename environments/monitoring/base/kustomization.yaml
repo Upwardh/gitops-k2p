@@ -4,7 +4,7 @@ kind: Kustomization
 configMapGenerator:
   - name: ktcloud-lb-dashboards
     files:
-      - dashboard-all-enhanced.json
+      - dashboard-all-working-with-totals.json
       - dashboard-ktcloud-test-dx-m1.json
       - dashboard-semascrd-dx-g-ys.json
     options:
