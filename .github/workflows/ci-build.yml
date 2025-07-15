@@ -77,7 +77,16 @@ jobs:
         run: |
           
           # Extract the main image tag (branch-latest format)
-          IMAGE_TAG=$(echo "${{ needs.build.outputs.image-tag }}" | grep -o '[^,]*-latest' | head -1)
+          FULL_TAG_OUTPUT="${{ needs.build.outputs.image-tag }}"
+          echo "🔍 Full tag output: $FULL_TAG_OUTPUT"
+          
+          # Extract just the tag portion (after the colon) that ends with -latest
+          IMAGE_TAG=$(echo "$FULL_TAG_OUTPUT" | grep -o '[^:]*-latest' | head -1)
+          
+          # If that fails, try a more specific pattern
+          if [ -z "$IMAGE_TAG" ]; then
+            IMAGE_TAG=$(echo "$FULL_TAG_OUTPUT" | sed -n 's/.*:\([^,]*-latest\).*/\1/p' | head -1)
+          fi
           
           echo "🚀 Updating image tag to: $IMAGE_TAG"
           
