@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ktcloud-lb-dashboards
+  labels:
+    grafana_dashboard: "1"
+    app.kubernetes.io/name: grafana
+data:
+  dashboard-all-enhanced.json: |
+    # This will be replaced by kustomize with the actual JSON content
+  dashboard-ktcloud-test-dx-m1.json: |
+    # This will be replaced by kustomize with the actual JSON content  
+  dashboard-semascrd-dx-g-ys.json: |
+    # This will be replaced by kustomize with the actual JSON content
