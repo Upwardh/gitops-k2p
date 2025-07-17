@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: lb-exporter
-          image: registry.cloud.kt.com/nqtv7l5h/lb-exporter:develop-latest
+          image: registry.cloud.kt.com/nqtv7l5h/lb-exporter:v1.0.1
           ports:
             - containerPort: 9105
               name: metrics
