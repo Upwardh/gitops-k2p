@@ -1,0 +1,23 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: dev-lb-exporter
+  namespace: monitoring-dev
+  labels:
+    app: lb-exporter
+    environment: dev
+    release: prometheus-dev
+spec:
+  selector:
+    matchLabels:
+      app: lb-exporter
+      environment: dev
+  endpoints:
+  - port: metrics
+    interval: 60s
+    path: /metrics
+    honorLabels: true
+    scrapeTimeout: 20s
+  namespaceSelector:
+    matchNames:
+    - monitoring-dev

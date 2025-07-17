@@ -1,0 +1,44 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: ktcloud-lb-monitoring
+  namespace: argocd
+spec:
+  description: KT Cloud Load Balancer Monitoring Project
+  sourceRepos:
+    - 'https://github.com/Upwardh/gitops-k2p.git'
+  destinations:
+    - namespace: 'monitoring*'
+      server: 'https://kubernetes.default.svc'
+  clusterResourceWhitelist:
+    - group: ''
+      kind: Namespace
+    - group: 'monitoring.coreos.com'
+      kind: ServiceMonitor
+  namespaceResourceWhitelist:
+    - group: ''
+      kind: Secret
+    - group: ''
+      kind: Service
+    - group: ''
+      kind: ConfigMap
+    - group: 'apps'
+      kind: Deployment
+    - group: 'monitoring.coreos.com'
+      kind: ServiceMonitor
+  roles:
+    - name: admin
+      description: Admin access to ktcloud-lb-monitoring project
+      policies:
+        - p, proj:ktcloud-lb-monitoring:admin, applications, *, ktcloud-lb-monitoring/*, allow
+        - p, proj:ktcloud-lb-monitoring:admin, repositories, *, *, allow
+      groups:
+        - ktcloud-admin
+    - name: developer
+      description: Developer access to ktcloud-lb-monitoring project
+      policies:
+        - p, proj:ktcloud-lb-monitoring:developer, applications, get, ktcloud-lb-monitoring/*, allow
+        - p, proj:ktcloud-lb-monitoring:developer, applications, sync, ktcloud-lb-monitoring/*-dev, allow
+        - p, proj:ktcloud-lb-monitoring:developer, applications, sync, ktcloud-lb-monitoring/*-staging, allow
+      groups:
+        - ktcloud-developer

@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: staging-lb-exporter
+  namespace: monitoring-staging
+  labels:
+    app: lb-exporter
+    environment: staging
+spec:
+  selector:
+    app: lb-exporter
+    environment: staging
+  ports:
+  - port: 9105
+    targetPort: 9105
+    name: metrics
+  type: ClusterIP

@@ -1,0 +1,97 @@
+prometheus:
+  prometheusSpec:
+    additionalScrapeConfigs:
+    - honor_labels: true
+      job_name: ktcloud-lb
+      metrics_path: /metrics
+      scrape_interval: 60s
+      scrape_timeout: 20s
+      static_configs:
+      - targets:
+        - prod-lb-exporter.monitoring-prod:9105
+    - honor_labels: true
+      job_name: ktcloud-lb-account2
+      metrics_path: /metrics
+      scrape_interval: 60s
+      scrape_timeout: 20s
+      static_configs:
+      - targets:
+        - prod-lb-exporter-account2.monitoring-prod:9105
+    podMonitorNamespaceSelector:
+      matchLabels:
+        name: monitoring-prod
+    probeNamespaceSelector:
+      matchLabels:
+        name: monitoring-prod
+    ruleNamespaceSelector:
+      matchLabels:
+        name: monitoring-prod
+    serviceMonitorNamespaceSelector:
+      matchLabels:
+        name: monitoring-prod
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+          - ReadWriteOnce
+          resources:
+            requests:
+              storage: 20Gi
+          storageClassName: ktc-nfs-client
+    # 프로덕션용 고가용성 설정
+    replicas: 2
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 500m
+        memory: 2Gi
+
+# Node Exporter 비활성화 (포트 충돌 방지)
+nodeExporter:
+  enabled: false
+
+# 프로덕션용 AlertManager 고가용성
+alertmanager:
+  alertmanagerSpec:
+    replicas: 2
+    storage:
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+          - ReadWriteOnce
+          resources:
+            requests:
+              storage: 5Gi
+          storageClassName: ktc-nfs-client
+
+grafana:
+  adminPassword: ProdAdmin123
+  enabled: true
+  ingress:
+    enabled: true
+    hosts:
+    - prod.grafana.devtron.click
+    ingressClassName: nginx
+    path: /
+    pathType: Prefix
+  initChownData:
+    enabled: false
+  persistence:
+    accessModes:
+    - ReadWriteOnce
+    enabled: true
+    size: 10Gi
+    storageClassName: ktc-nfs-client
+    type: pvc
+  service:
+    type: ClusterIP
+  # 프로덕션용 리소스 할당
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 200m
+      memory: 256Mi

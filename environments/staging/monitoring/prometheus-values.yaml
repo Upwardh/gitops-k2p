@@ -1,0 +1,66 @@
+prometheus:
+  prometheusSpec:
+    additionalScrapeConfigs:
+    - honor_labels: true
+      job_name: ktcloud-lb
+      metrics_path: /metrics
+      scrape_interval: 60s
+      scrape_timeout: 20s
+      static_configs:
+      - targets:
+        - staging-lb-exporter.monitoring-staging:9105
+    - honor_labels: true
+      job_name: ktcloud-lb-account2
+      metrics_path: /metrics
+      scrape_interval: 60s
+      scrape_timeout: 20s
+      static_configs:
+      - targets:
+        - staging-lb-exporter-account2.monitoring-staging:9105
+    podMonitorNamespaceSelector:
+      matchLabels:
+        name: monitoring-staging
+    probeNamespaceSelector:
+      matchLabels:
+        name: monitoring-staging
+    ruleNamespaceSelector:
+      matchLabels:
+        name: monitoring-staging
+    serviceMonitorNamespaceSelector:
+      matchLabels:
+        name: monitoring-staging
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+          - ReadWriteOnce
+          resources:
+            requests:
+              storage: 10Gi
+          storageClassName: ktc-nfs-client
+
+# Node Exporter 비활성화 (포트 충돌 방지)
+nodeExporter:
+  enabled: false
+
+grafana:
+  adminPassword: StagingAdmin123
+  enabled: true
+  ingress:
+    enabled: true
+    hosts:
+    - staging.grafana.devtron.click
+    ingressClassName: nginx
+    path: /
+    pathType: Prefix
+  initChownData:
+    enabled: false
+  persistence:
+    accessModes:
+    - ReadWriteOnce
+    enabled: true
+    size: 5Gi
+    storageClassName: ktc-nfs-client
+    type: pvc
+  service:
+    type: ClusterIP

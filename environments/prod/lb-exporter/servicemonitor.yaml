@@ -1,0 +1,23 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: prod-lb-exporter
+  namespace: monitoring
+  labels:
+    app: lb-exporter
+    environment: prod
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: lb-exporter
+      environment: prod
+  endpoints:
+  - port: metrics
+    interval: 60s
+    path: /metrics
+    honorLabels: true
+    scrapeTimeout: 20s
+  namespaceSelector:
+    matchNames:
+    - monitoring
